@@ -5,6 +5,8 @@ from pygame import mixer
 import numpy as np
 import os
 
+LEFT = 0
+RIGHT = 1
 
 def getURL(filename):
     return os.path.dirname(__file__) + "/" + filename
@@ -38,6 +40,9 @@ class SpaceInvaders():
             self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         else:
             self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), flags=pygame.HIDDEN)
+
+        # Other variables
+        self.old_invader_x = self.screen_width / 2
 
         # caption and icon
         pygame.display.set_caption("Welcome to Space Invaders Game by:- styles")
@@ -86,7 +91,30 @@ class SpaceInvaders():
         Cette méthode doit renvoyer l'état du système comme vous aurez choisi de
         le représenter. Vous pouvez utiliser les accesseurs ci-dessus pour cela. 
         """
-        return "L'état n'est pas implémenté (SpaceInvaders.get_state)"
+
+        player_x = self.get_player_X()
+        player_y = self.get_player_Y()
+        invaders_x = self.get_indavers_X()
+        invaders_y = self.get_indavers_Y()
+
+        can_shoot = 0 if self.get_bullet_state() == 'rest' else 1
+        invader_side = LEFT if invaders_x[0] < player_x else RIGHT
+        height = int(invaders_y[0] // (self.screen_height / 8))
+        direction = LEFT if invaders_x[0] < self.old_invader_x else RIGHT
+        interval = abs(player_x - invaders_x[0])
+        if (interval < self.screen_width / 16):
+            width = 3
+        elif (interval < self.screen_width / 8):
+            width = 2
+        elif (interval < self.screen_width / 4):
+            width = 1
+        else:
+            width = 0
+
+        state = direction * 128 + can_shoot * 64 + invader_side * 32 + height * 4 + width * 1
+        self.old_invader_x = invaders_x[0]
+
+        return state
 
     def reset(self):
         """Reset the game at the initial state.
