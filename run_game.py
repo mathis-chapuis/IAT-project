@@ -1,4 +1,6 @@
 from time import sleep
+from sys import argv, exit
+
 from game.SpaceInvaders import SpaceInvaders
 from controller.keyboard import KeyboardController
 from controller.random_agent import RandomAgent
@@ -6,45 +8,62 @@ from controller.qagent import QAgent
 from controller import AgentInterface
 from epsilon_profile import EpsilonProfile
 
-def test_maze(game: SpaceInvaders, agent: AgentInterface, max_steps: int, nepisodes : int = 1, speed: float = 0., same = True, display: bool = False):
-    n_steps = max_steps
+def test_game(game: SpaceInvaders, agent: AgentInterface, nepisodes : int = 1, display: bool = False):
     sum_rewards = 0.
-    for _ in range(nepisodes):
-        state = game.reset_using_existing_maze() if (same) else game.reset()
+    game.set_display(display)
 
-        for step in range(max_steps):
+    for _ in range(nepisodes):
+        terminal = False
+        state = game.reset()
+
+        while not terminal:
             action = agent.select_greedy_action(state)
             next_state, reward, terminal = game.step(action)
 
             sum_rewards += reward
-            if terminal:
-                n_steps = step+1  # number of steps taken
-                break
             state = next_state
-    return n_steps, sum_rewards
+    return sum_rewards
 
 
 def main():
-    n_episodes = 10
-    max_steps = 1000
-    gamma = 1.
-    alpha = 0.2
-    eps_profile = EpsilonProfile(1.0, 0)
+    if len(argv) > 7:
+        n_episodes = int(argv[1])
+        max_steps = int(argv[2])
+        final_episodes = int(argv[3])
+        gamma = float(argv[4])
+        alpha = float(argv[5])
+        eps_profile = EpsilonProfile(float(argv[6]), float(argv[7]))
+    else:
+        print('\n\nUsage: python3 run_game.py <n_epispdes> <n_steps> <final_episodes> <gamma> <alpha> <eps_begin> <eps_end>\n')
+        exit(1)
+        # n_episodes = 100
+        # max_steps = 30000
+        # gamma = 1.
+        # alpha = 0.1
+        # eps_profile = EpsilonProfile(1.0, 0.1)
+        # final_episodes = 10
 
     # Init agent and learn
     game = SpaceInvaders(display=False)
     agent = QAgent(game, eps_profile, gamma, alpha)
     agent.learn(game, n_episodes, max_steps)
-    print('Agent Q {}'.format(agent.Q))
+    sum_rewards = test_game(game, agent, n_episodes=final_episodes, display=False)
+
+    print('Training score: {}'.format(sum_rewards / final_episodes))
 
     #controller = KeyboardController()
-    # controller = RandomAgent(game.na)
+    controller = RandomAgent(game.na)
  
-    # state = game.reset()
-    # while True:
-    #     action = controller.select_action(state)
-    #     state, reward, is_done = game.step(action)
-    #     sleep(0.0001)
+    state = game.reset()
+    random_score = 0
+    is_done = False
+    for _ in range(final_episodes):
+        while not is_done:
+            action = controller.select_action(state)
+            state, reward, is_done = game.step(action)
+            random_score += reward
+
+    print('random_score : {}'.format(random_score / final_episodes))
 
 if __name__ == '__main__' :
     main()

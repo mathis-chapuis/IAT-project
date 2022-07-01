@@ -97,6 +97,9 @@ class SpaceInvaders():
         invaders_x = self.get_indavers_X()
         invaders_y = self.get_indavers_Y()
 
+        if invaders_y[0] > self.screen_height:
+            invaders_y[0] = self.screen_height - 1
+
         can_shoot = 0 if self.get_bullet_state() == 'rest' else 1
         invader_side = LEFT if invaders_x[0] < player_x else RIGHT
         height = int(invaders_y[0] // (self.screen_height / 8))
@@ -255,3 +258,9 @@ class SpaceInvaders():
     def isCollision(self, x1, x2, y1, y2):
         distance = math.sqrt((math.pow(x1 - x2,2)) + (math.pow(y1 - y2,2)))
         return (distance <= 50)
+
+    def set_display(self, display):
+        if display:
+            self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        else:
+            self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), flags=pygame.HIDDEN)

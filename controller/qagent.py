@@ -64,6 +64,9 @@ class QAgent(AgentInterface):
                     break
 
                 state = next_state
+
+                print("\r#> Ep. {}/{} Step {}/{} Q sum {}".format(episode, n_episodes, step, max_steps, np.sum(self.Q)), end =" ")
+
             # Mets à jour la valeur du epsilon
             self.epsilon = max(self.epsilon - self.eps_profile.dec_episode / (n_episodes - 1.), self.eps_profile.final)
 
@@ -88,9 +91,9 @@ class QAgent(AgentInterface):
         :param next_state: L'état suivant
         """
 
-        print('state : {}'.format(state))
-        print('action : {}'.format(action))
-        print('reward : {}'.format(reward))
+        # print('state : {}'.format(state))
+        # print('action : {}'.format(action))
+        # print('reward : {}'.format(reward))
         self.Q[state][action] = (1 - self.alpha) * self.Q[state][action] + self.alpha * (reward + self.gamma * np.max(self.Q[next_state]))
 
     def select_action(self, state : 'Tuple[int, int]'):
